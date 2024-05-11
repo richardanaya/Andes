@@ -1,5 +1,5 @@
 use clap::Parser;
-use iced::widget::{button, column, scrollable, text, text_input, Column, Scrollable, Space};
+use iced::widget::{button, column, row, scrollable, text, text_input, Column, Scrollable, Space};
 use iced::{Alignment, Command, Element};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -68,6 +68,8 @@ struct Chat {
 
 static SCROLLABLE: Lazy<scrollable::Id> = Lazy::new(|| scrollable::Id::new("scrollable"));
 static INPUT_ID: Lazy<text_input::Id> = Lazy::new(|| text_input::Id::new("user_input"));
+
+const LOGO: &'static [u8] = include_bytes!("andes.png");
 
 impl Default for Andes {
     fn default() -> Self {
@@ -179,6 +181,24 @@ impl Andes {
                 .into()
             })
             .collect::<Vec<Element<Message>>>();
+
+        if messages.is_empty() {
+            messages.insert(
+                0,
+                row![column![
+                    iced::widget::image::Image::new(iced::widget::image::Handle::from_memory(LOGO))
+                        .width(300),
+                    text("Andes").size(32)
+                ]
+                .width(iced::Length::Fill)
+                .align_items(Alignment::Center)]
+                .padding(20)
+                .width(iced::Length::Fill)
+                .align_items(Alignment::Center)
+                .into(),
+            );
+        }
+
         messages.push(
             text_input("Context... ", &self.context)
                 .on_input(|s| Message::EditContext(s))

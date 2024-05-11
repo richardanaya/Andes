@@ -19,3 +19,4 @@ serde_json = "1.0.117"
 [dependencies.iced]
 git = "https://github.com/iced-rs/iced.git"
 rev = "cdb18e610a72b4a025d7e1890140393adee5b087"
+features = [ "image" ]
