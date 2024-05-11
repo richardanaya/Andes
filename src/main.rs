@@ -188,7 +188,7 @@ impl Andes {
                 row![column![
                     iced::widget::image::Image::new(iced::widget::image::Handle::from_memory(LOGO))
                         .width(300),
-                    text("Andes").size(32)
+                    text("ANDES").size(32)
                 ]
                 .width(iced::Length::Fill)
                 .align_items(Alignment::Center)]
