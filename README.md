@@ -4,3 +4,8 @@
 * Chat with Ollama servers
 
 # How to run
+
+```
+cargo install andes
+andes -o <ip of ollama server> -m <model>
+```
