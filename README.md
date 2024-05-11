@@ -6,6 +6,7 @@
 # How to run
 
 ```
-cargo install andes
-andes -o <ip of ollama server> -m <model>
+git pull git@github.com:richardanaya/Andes.git
+cd Andes
+cargo run -o <ip of ollama server> -m <model>
 ```
