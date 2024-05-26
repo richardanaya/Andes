@@ -13,7 +13,11 @@ import "@material/web/list/list.js";
 import "@material/web/list/list-item.js";
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
+
+// ts-ignore next line
+// @ts-ignore
 import img from "./assets/andes.png";
+import { Body, fetch } from "@tauri-apps/api/http";
 
 @customElement("app-root")
 export class AppRoot extends LitElement {
@@ -29,6 +33,11 @@ export class AppRoot extends LitElement {
       display: flex;
       flex-wrap: wrap;
       gap: 16px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
     }
 
     .chat * {
@@ -98,18 +107,7 @@ export class AppRoot extends LitElement {
       });
 
       // send message non-streaming to ollama using ip
-      const response = await fetch(`http://${this.ip}:11434/api/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: newChat,
-          stream: false,
-        }),
-      });
-      const responseJson: {
+      const response = await fetch<{
         model: string;
         created_at: string;
         message: {
@@ -120,7 +118,18 @@ export class AppRoot extends LitElement {
         done: boolean;
         total_duration: number;
         load_duration: number;
-      } = await response.json();
+      }>(`http://${this.ip}:11434/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: Body.json({
+          model: this.model,
+          messages: newChat,
+          stream: false,
+        }),
+      });
+      const responseJson = response.data;
 
       this.chat = [...this.chat, responseJson.message];
     }
@@ -128,9 +137,11 @@ export class AppRoot extends LitElement {
     message.value = "";
     this.processing = false;
 
-    // focus on message input and scroll to bottom
-    message.focus();
-    window.scrollTo(0, document.body.scrollHeight);
+    setTimeout(() => {
+      // focus on message input and scroll to bottom
+      message.focus();
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 100);
   }
 
   reset() {
@@ -204,8 +215,19 @@ export class AppRoot extends LitElement {
 
     return html` <div class="column">
       ${this.chat.length === 0
-        ? html`<img src=${img} alt="Andes logo" class="logo" />`
+        ? html`<img src="${img}" alt="Andes logo" class="logo" />`
         : html``}
+
+      <div class="row">
+        <md-outlined-text-field
+          label="Context"
+          type="textarea"
+          rows="3"
+          value=""
+          style="width: 100%;"
+        >
+        </md-outlined-text-field>
+      </div>
       ${this.chat.length === 0
         ? html``
         : html`
@@ -223,34 +245,24 @@ export class AppRoot extends LitElement {
               )}
             </md-list>
           `}
-      <div class="row">
-        <md-outlined-text-field
-          label="Context"
-          type="textarea"
-          rows="3"
-          value=""
-          style="width: 100%;"
-        >
-        </md-outlined-text-field>
-      </div>
-      <div class="row">
-        <md-outlined-text-field
-          label="Message"
-          value=""
-          style="width: 100%;"
-          @keydown="${this.handleMessageKeyDown}"
-        >
-        </md-outlined-text-field>
+      <md-outlined-text-field
+        label="Message"
+        value=""
+        style="width: 100%;"
+        @keydown="${this.handleMessageKeyDown}"
+      >
+      </md-outlined-text-field>
+      <div class="buttons">
         <md-outlined-button
-          style="width: 100%;"
+          style="width: 30%;"
           @click="${this.sendMessage}"
           ?disabled=${this.processing}
           >Send</md-outlined-button
         >
-        <md-outlined-button style="width: 100%;" @click="${this.reset}"
+        <md-outlined-button style="width: 30%;" @click="${this.reset}"
           >Clear</md-outlined-button
         >
-        <md-outlined-button style="width: 100%;" @click="${this.enterSettings}"
+        <md-outlined-button style="width: 30%;" @click="${this.enterSettings}"
           >Settings</md-outlined-button
         >
       </div>

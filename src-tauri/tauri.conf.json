@@ -16,6 +16,11 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["https://**", "http://**"]
       }
     },
     "windows": [
@@ -32,7 +37,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "andes.richardanaya.com",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

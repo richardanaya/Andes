@@ -1,1 +1,8 @@
-@import "open-props/sizes";
+:root {
+  --md-ref-typeface-brand: Arial, sans-serif;
+  --md-ref-typeface-plain: Arial, sans-serif;
+  --md-sys-color-primary: #006a6a;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #6ff7f6;
+  --md-sys-color-on-primary-container: #002020;
+}
