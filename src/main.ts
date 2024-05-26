@@ -49,6 +49,12 @@ export class AppRoot extends LitElement {
       margin: 0 auto;
       padding: 1rem;
     }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      margin-top: 1rem;
+    }
   `;
 
   @property()
@@ -65,6 +71,12 @@ export class AppRoot extends LitElement {
 
   @property()
   processing: boolean = false;
+
+  @property()
+  contextEditable: boolean = true;
+
+  @property()
+  context: string = "";
 
   firstUpdated() {
     const context = this.shadowRoot?.querySelector(
@@ -97,6 +109,7 @@ export class AppRoot extends LitElement {
 
     this.processing = true;
     if (context && message) {
+      this.contextEditable = false;
       this.chat = [...this.chat, { role: "user", content: message.value }];
 
       const newChat = [...this.chat];
@@ -180,91 +193,128 @@ export class AppRoot extends LitElement {
     }
   }
 
+  makeContextEditable() {
+    this.contextEditable = true;
+  }
+
+  updateContext(e: Event) {
+    const target = e.target as HTMLInputElement;
+    this.context = target.value;
+  }
+
   // Render the UI as a function of component state
   render() {
     if (this.showSettings)
       return html`
-        <div class="column">
-          <div class="row">
-            <md-outlined-text-field
-              label="IP"
-              value=${this.ip}
-              @input=${this.setIp}
-              style="width: 100%;"
-            >
-            </md-outlined-text-field>
-          </div>
-          <div class="row">
-            <md-outlined-text-field
-              label="Model"
-              value=${this.model}
-              @input=${this.setModel}
-              style="width: 100%;"
-            >
-            </md-outlined-text-field>
-          </div>
-          <div class="row">
-            <md-outlined-button
-              style="width: 100%;"
-              @click="${this.exitSettings}"
-              >Done</md-outlined-button
-            >
+        <div class="container">
+          <div class="column">
+            <div class="row">
+              <md-outlined-text-field
+                label="IP"
+                value=${this.ip}
+                @input=${this.setIp}
+                style="width: 100%;"
+              >
+              </md-outlined-text-field>
+            </div>
+            <div class="row">
+              <md-outlined-text-field
+                label="Model"
+                value=${this.model}
+                @input=${this.setModel}
+                style="width: 100%;"
+              >
+              </md-outlined-text-field>
+            </div>
+            <div class="row">
+              <md-outlined-button
+                style="width: 100%;"
+                @click="${this.exitSettings}"
+                >Done</md-outlined-button
+              >
+            </div>
           </div>
         </div>
       `;
 
-    return html` <div class="column">
-      ${this.chat.length === 0
-        ? html`<img src="${img}" alt="Andes logo" class="logo" />`
-        : html``}
-
-      <div class="row">
+    return html` <div class="container">
+      <div class="column">
+        ${this.chat.length === 0
+          ? html`<img
+              src="${img}"
+              alt="Andes logo"
+              class="logo"
+              draggable="false"
+            />`
+          : html``}
+        ${this.contextEditable
+          ? html`<div class="row">
+              <md-outlined-text-field
+                label="Context"
+                type="textarea"
+                value="${this.context}"
+                style="width: 100%;"
+                @change="${this.updateContext}"
+              >
+              </md-outlined-text-field>
+            </div>`
+          : undefined}
+        ${this.chat.length === 0
+          ? html``
+          : html`
+              <md-list style="width: 100%;" class="chat">
+                ${!this.contextEditable
+                  ? html`<div
+                        class="row"
+                        @click="${this.makeContextEditable}"
+                        style="cursor: pointer;"
+                      >
+                        <md-list-item>
+                          <div
+                            slot="headline"
+                            style="text-decoration: underline"
+                          >
+                            context
+                          </div>
+                          <div slot="supporting-text">${this.context}</div>
+                        </md-list-item>
+                      </div>
+                      <md-divider padded></md-divider>`
+                  : undefined}
+                ${this.chat.map(
+                  (item, i) => html`
+                    <md-list-item>
+                      <div slot="headline">${item.role}</div>
+                      <div slot="supporting-text">${item.content}</div>
+                    </md-list-item>
+                    ${i < this.chat.length - 1
+                      ? html`<md-divider padded></md-divider>`
+                      : ""}
+                  `
+                )}
+              </md-list>
+            `}
         <md-outlined-text-field
-          label="Context"
-          type="textarea"
-          rows="3"
+          label="Message"
           value=""
           style="width: 100%;"
+          @keydown="${this.handleMessageKeyDown}"
         >
         </md-outlined-text-field>
-      </div>
-      ${this.chat.length === 0
-        ? html``
-        : html`
-            <md-list style="width: 100%;" class="chat">
-              ${this.chat.map(
-                (item, i) => html`
-                  <md-list-item>
-                    <div slot="headline">${item.role}</div>
-                    <div slot="supporting-text">${item.content}</div>
-                  </md-list-item>
-                  ${i < this.chat.length - 1
-                    ? html`<md-divider padded></md-divider>`
-                    : ""}
-                `
-              )}
-            </md-list>
-          `}
-      <md-outlined-text-field
-        label="Message"
-        value=""
-        style="width: 100%;"
-        @keydown="${this.handleMessageKeyDown}"
-      >
-      </md-outlined-text-field>
-      <div class="buttons">
-        <md-outlined-button
-          style="width: 30%;"
-          @click="${this.sendMessage}"
-          ?disabled=${this.processing}
-          >Send</md-outlined-button
-        >
-        <md-outlined-button style="width: 30%;" @click="${this.reset}"
-          >Clear</md-outlined-button
-        >
-        <md-outlined-button style="width: 30%;" @click="${this.enterSettings}"
-          >Settings</md-outlined-button
-        >
+        <div class="buttons">
+          <md-outlined-button
+            style="width: 30%;"
+            @click="${this.sendMessage}"
+            ?disabled=${this.processing}
+            >Send</md-outlined-button
+          >
+          <md-outlined-button style="width: 30%;" @click="${this.reset}"
+            >Clear</md-outlined-button
+          >
+          <md-outlined-button style="width: 30%;" @click="${this.enterSettings}"
+            >Settings</md-outlined-button
+          >
+        </div>
       </div>
     </div>`;
   }
