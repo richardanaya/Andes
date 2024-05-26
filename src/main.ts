@@ -100,15 +100,12 @@ export class AppRoot extends LitElement {
   }
 
   async sendMessage() {
-    const context = this.shadowRoot?.querySelector(
-      'md-outlined-text-field[label="Context"]'
-    ) as HTMLInputElement;
     const message = this.shadowRoot?.querySelector(
       'md-outlined-text-field[label="Message"]'
     ) as HTMLInputElement;
 
     this.processing = true;
-    if (context && message) {
+    if (message) {
       this.contextEditable = false;
       this.chat = [...this.chat, { role: "user", content: message.value }];
 
@@ -116,7 +113,7 @@ export class AppRoot extends LitElement {
       // add new system message to front
       newChat.unshift({
         role: "system",
-        content: context.value,
+        content: this.context,
       });
 
       // send message non-streaming to ollama using ip
@@ -159,6 +156,7 @@ export class AppRoot extends LitElement {
 
   reset() {
     this.chat = [];
+    this.contextEditable = true;
 
     const message = this.shadowRoot?.querySelector(
       'md-outlined-text-field[label="Message"]'
